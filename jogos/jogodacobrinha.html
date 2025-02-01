@@ -139,15 +139,15 @@
                 inputSequence = []; // Reseta a sequência após ativar o cheat
             }
 
-            // Controla a direção da cobra
-            if (event.key === 'ArrowUp' && direction !== 'DOWN') {
-                direction = 'UP';
-            } else if (event.key === 'ArrowDown' && direction !== 'UP') {
-                direction = 'DOWN';
-            } else if (event.key === 'ArrowLeft' && direction !== 'RIGHT') {
-                direction = 'LEFT';
-            } else if (event.key === 'ArrowRight' && direction !== 'LEFT') {
-                direction = 'RIGHT';
+            // Controla a direção da cobra usando as teclas 'W', 'A', 'S', 'D'
+            if (event.key === 'w' && direction !== 'DOWN') {
+                direction = 'UP'; // 'w' para cima
+            } else if (event.key === 's' && direction !== 'UP') {
+                direction = 'DOWN'; // 's' para baixo
+            } else if (event.key === 'a' && direction !== 'RIGHT') {
+                direction = 'LEFT'; // 'a' para esquerda
+            } else if (event.key === 'd' && direction !== 'LEFT') {
+                direction = 'RIGHT'; // 'd' para direita
             }
         }
 
