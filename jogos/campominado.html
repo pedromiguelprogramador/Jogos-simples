@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campo Minado</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #000;
+      color: #fff;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .campo-minado {
+      display: grid;
+      grid-template-columns: repeat(16, 30px);
+      grid-template-rows: repeat(16, 30px);
+    }
+    .botao {
+      width: 30px;
+      height: 30px;
+      font-size: 18px;
+      text-align: center;
+      cursor: pointer;
+      background-color: #d3d3d3;
+      border: 1px solid #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: black;
+    }
+    .botao.revelado {
+      background-color: white;
+      pointer-events: none;
+    }
+    .botao.mina {
+      background-color: red;
+      color: white;
+    }
+    .botao.bandeira {
+      background-color: yellow;
+      color: red;
+    }
+    .botao.numeros-1 { color: blue; }
+    .botao.numeros-2 { color: green; }
+    .botao.numeros-3 { color: red; }
+    .botao.numeros-4 { color: purple; }
+    .botao.numeros-5 { color: brown; }
+    .botao.numeros-6 { color: cyan; }
+    .botao.numeros-7 { color: black; }
+    .botao.numeros-8 { color: gray; }
+    .congratulations {
+      font-size: 50px;
+      color: yellow;
+      text-align: center;
+    }
+    .jogar-denovo {
+      font-size: 20px;
+      text-align: center;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="campo-minado" id="campoMinado"></div>
+<div id="congratulationsMessage" class="congratulations" style="display: none;"></div>
+<div id="jogarDenovo" class="jogar-denovo" style="display: none;" onclick="reiniciarJogo()">Jogue novamente</div>
+
+<script>
+  const largura = 16;
+  const altura = 16;
+  const numMinas = 26;
+  let campo = [];
+  let minas = [];
+  let bandeiras = [];
+  let cheatSequence = [];
+  let isGameOver = false;
+
+  // Função para reiniciar o jogo
+  function reiniciarJogo() {
+    campo = [];
+    minas = [];
+    bandeiras = [];
+    isGameOver = false;
+    cheatSequence = [];
+    const campoMinado = document.getElementById("campoMinado");
+    campoMinado.innerHTML = '';
+    gerarCampo();
+    document.getElementById("congratulationsMessage").style.display = "none";
+    document.getElementById("jogarDenovo").style.display = "none";
+  }
+
+  // Função para gerar o campo do jogo
+  function gerarCampo() {
+    for (let i = 0; i < largura; i++) {
+      const linha = [];
+      for (let j = 0; j < altura; j++) {
+        linha.push(0);
+      }
+      campo.push(linha);
+    }
+
+    let minasColocadas = 0;
+    while (minasColocadas < numMinas) {
+      const x = Math.floor(Math.random() * largura);
+      const y = Math.floor(Math.random() * altura);
+      if (campo[x][y] === 0) {
+        campo[x][y] = 'M';
+        minas.push({x, y});
+        minasColocadas++;
+      }
+    }
+
+    for (let i = 0; i < largura; i++) {
+      for (let j = 0; j < altura; j++) {
+        if (campo[i][j] === 'M') continue;
+        let minasAoRedor = 0;
+        for (let x = -1; x <= 1; x++) {
+          for (let y = -1; y <= 1; y++) {
+            const nx = i + x;
+            const ny = j + y;
+            if (nx >= 0 && nx < largura && ny >= 0 && ny < altura && campo[nx][ny] === 'M') {
+              minasAoRedor++;
+            }
+          }
+        }
+        campo[i][j] = minasAoRedor;
+      }
+    }
+
+    const campoMinado = document.getElementById("campoMinado");
+    for (let i = 0; i < largura; i++) {
+      for (let j = 0; j < altura; j++) {
+        const botao = document.createElement('button');
+        botao.classList.add('botao');
+        botao.setAttribute('data-x', i);
+        botao.setAttribute('data-y', j);
+        botao.addEventListener('click', revelarCelula);
+        botao.addEventListener('contextmenu', colocarBandeira);
+        campoMinado.appendChild(botao);
+      }
+    }
+  }
+
+  // Função para revelar uma célula
+  function revelarCelula(event) {
+    if (isGameOver) return;
+    const x = parseInt(event.target.getAttribute('data-x'));
+    const y = parseInt(event.target.getAttribute('data-y'));
+
+    if (event.target.classList.contains('bandeira')) return;
+
+    const valor = campo[x][y];
+    if (valor === 'M') {
+      event.target.classList.add('mina');
+      event.target.textContent = 'M';
+      gameOver("Você perdeu!");
+      return;
+    }
+
+    event.target.classList.add('revelado');
+    if (valor > 0) {
+      event.target.textContent = valor;
+      event.target.classList.add(`numeros-${valor}`);
+    } else {
+      event.target.textContent = '';
+      revelarVizinhos(x, y);
+    }
+
+    if (verificarVitoria()) {
+      gameOver("Congratulations!");
+    }
+  }
+
+  // Função para verificar a vitória
+  function verificarVitoria() {
+    for (let i = 0; i < largura; i++) {
+      for (let j = 0; j < altura; j++) {
+        const botao = document.querySelector(`button[data-x='${i}'][data-y='${j}']`);
+        if (campo[i][j] !== 'M' && !botao.classList.contains('revelado')) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  // Função para revelar as células vizinhas
+  function revelarVizinhos(x, y) {
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        const nx = x + i;
+        const ny = y + j;
+        if (nx >= 0 && nx < largura && ny >= 0 && ny < altura) {
+          const botao = document.querySelector(`button[data-x='${nx}'][data-y='${ny}']`);
+          if (!botao.classList.contains('revelado') && !botao.classList.contains('bandeira')) {
+            botao.click();
+          }
+        }
+      }
+    }
+  }
+
+  // Função para colocar ou remover bandeiras
+  function colocarBandeira(event) {
+    event.preventDefault();
+    const x = parseInt(event.target.getAttribute('data-x'));
+    const y = parseInt(event.target.getAttribute('data-y'));
+    if (event.target.classList.contains('revelado')) return;
+
+    if (event.target.classList.contains('bandeira')) {
+      event.target.classList.remove('bandeira');
+      bandeiras = bandeiras.filter(b => !(b.x === x && b.y === y));
+    } else {
+      event.target.classList.add('bandeira');
+      bandeiras.push({ x, y });
+    }
+  }
+
+  // Função para acionar o cheat
+  function cheat() {
+    if (cheatSequence.join('') === 'pegasus') {
+      minas.forEach(mina => {
+        const botao = document.querySelector(`button[data-x='${mina.x}'][data-y='${mina.y}']`);
+        botao.classList.add('bandeira');
+      });
+    }
+  }
+
+  // Função para exibir a mensagem de término do jogo
+  function gameOver(mensagem) {
+    isGameOver = true;
+    document.getElementById("congratulationsMessage").style.display = "block";
+    document.getElementById("congratulationsMessage").textContent = mensagem;
+    document.getElementById("jogarDenovo").style.display = "block";
+  }
+
+  // Detecção de teclas para o cheat
+  document.addEventListener('keydown', (event) => {
+    cheatSequence.push(event.key.toLowerCase());
+    if (cheatSequence.length > 7) {
+      cheatSequence.shift();
+    }
+    if (cheatSequence.join('') === 'pegasus') {
+      cheat();
+    }
+  });
+
+  // Iniciar o jogo ao carregar a página
+  reiniciarJogo();
+</script>
+
+</body>
+</html>

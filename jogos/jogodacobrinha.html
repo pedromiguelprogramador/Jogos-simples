@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Cobrinha</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+            flex-direction: column;
+        }
+        canvas {
+            border: 1px solid #fff;
+        }
+        .score-container {
+            color: white;
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="score-container" id="scoreContainer">Pontuação: 0</div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const gridSize = 20; // Tamanho de cada célula
+        const canvasSize = 400; // Tamanho do canvas
+        let snake = [{x: 160, y: 160}]; // Posições iniciais da cobrinha
+        let food = generateFood(); // Posição inicial da comida
+        let direction = 'RIGHT'; // Direção inicial
+        let score = 0;
+
+        // Sequência de teclas para o cheat "p e d r o"
+        const secretCode = ['p', 'e', 'd', 'r', 'o'];
+        let inputSequence = []; // Sequência de teclas pressionadas pelo jogador
+
+        document.addEventListener("keydown", changeDirection);
+
+        function gameLoop() {
+            setTimeout(() => {
+                clearCanvas();
+                moveSnake();
+                checkCollision();
+                drawSnake();
+                drawFood();
+                drawScore();
+                gameLoop();
+            }, 100);
+        }
+
+        function clearCanvas() {
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvasSize, canvasSize);
+        }
+
+        function drawSnake() {
+            ctx.fillStyle = "lime";
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillRect(snake[i].x, snake[i].y, gridSize, gridSize);
+            }
+        }
+
+        function drawFood() {
+            ctx.fillStyle = "red";
+            ctx.fillRect(food.x, food.y, gridSize, gridSize);
+        }
+
+        function moveSnake() {
+            let head = Object.assign({}, snake[0]);
+
+            if (direction === 'UP') head.y -= gridSize;
+            if (direction === 'DOWN') head.y += gridSize;
+            if (direction === 'LEFT') head.x -= gridSize;
+            if (direction === 'RIGHT') head.x += gridSize;
+
+            // Se a cobrinha bater nas paredes, ela se teletransporta para o lado oposto
+            if (head.x < 0) head.x = canvasSize - gridSize; // Teleporta para a direita se bater na parede esquerda
+            if (head.x >= canvasSize) head.x = 0; // Teleporta para a esquerda se bater na parede direita
+            if (head.y < 0) head.y = canvasSize - gridSize; // Teleporta para baixo se bater na parede superior
+            if (head.y >= canvasSize) head.y = 0; // Teleporta para cima se bater na parede inferior
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                food = generateFood(); // Gera nova comida
+            } else {
+                snake.pop();
+            }
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+            // Verifica se a cobrinha colidiu com ela mesma
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    resetGame();
+                }
+            }
+        }
+
+        function resetGame() {
+            snake = [{x: 160, y: 160}];
+            direction = 'RIGHT';
+            score = 0;
+            food = generateFood();
+            inputSequence = []; // Reseta a sequência de teclas
+        }
+
+        function generateFood() {
+            let x = Math.floor(Math.random() * (canvasSize / gridSize)) * gridSize;
+            let y = Math.floor(Math.random() * (canvasSize / gridSize)) * gridSize;
+            return {x, y};
+        }
+
+        function changeDirection(event) {
+            // Atualiza a sequência de teclas pressionadas para o cheat "p e d r o"
+            inputSequence.push(event.key);
+
+            // Verifica se a sequência para o cheat "p e d r o" foi digitada corretamente
+            if (inputSequence.length > secretCode.length) {
+                // Se a sequência ficar muito longa, reseta
+                inputSequence.shift();
+            }
+
+            // Verifica se a sequência de teclas foi a correta
+            if (inputSequence.join('') === secretCode.join('')) {
+                activateCheatCode(); // Ativa o cheat de aumento de tamanho se a sequência for correta
+                inputSequence = []; // Reseta a sequência após ativar o cheat
+            }
+
+            // Controla a direção da cobra
+            if (event.key === 'ArrowUp' && direction !== 'DOWN') {
+                direction = 'UP';
+            } else if (event.key === 'ArrowDown' && direction !== 'UP') {
+                direction = 'DOWN';
+            } else if (event.key === 'ArrowLeft' && direction !== 'RIGHT') {
+                direction = 'LEFT';
+            } else if (event.key === 'ArrowRight' && direction !== 'LEFT') {
+                direction = 'RIGHT';
+            }
+        }
+
+        function activateCheatCode() {
+            score = 29; // Define a pontuação como 29
+            // Aumenta o tamanho da cobrinha para o nível desejado (29 segmentos)
+            while (snake.length < 29) {
+                snake.push({x: snake[snake.length - 1].x, y: snake[snake.length - 1].y});
+            }
+        }
+
+        function drawScore() {
+            // Atualiza a pontuação fora do canvas (fora do quadrado do jogo)
+            const scoreContainer = document.getElementById("scoreContainer");
+            scoreContainer.textContent = "Pontuação: " + score;
+        }
+
+        gameLoop(); // Inicia o jogo
+    </script>
+</body>
+</html>
