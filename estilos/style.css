@@ -1,0 +1,33 @@
+@charset "UTF-8";
+
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    back
+}
+
+header {
+    background-image: linear-gradient(to left, rgb(21, 21, 21), black);
+    color: white;
+}
+
+header h1 {
+    padding: 38px;
+    text-align: center;
+}
+
+main {
+    background-color: darkgray;
+    margin: auto;
+    max-width: 800px;
+    min-width: 300px;
+}
+
+iframe {
+    max-width: 800px;
+    min-width: 300px;
+}
