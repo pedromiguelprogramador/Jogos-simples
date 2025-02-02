@@ -21,10 +21,11 @@ header h1 {
 }
 
 main {
-    background-color: rgba(0, 0, 0, 0.405);
+    background-color: rgba(27, 27, 27, 0.258);
     margin: auto;
     max-width: 800px;
     min-width: 300px;
+    color: white;
 }
 
 main > h2 {
@@ -34,9 +35,9 @@ main > h2 {
 
 main a {
     text-decoration: none;
-    color: white;
     padding: 20px;
     font-size: 20px;
+    color: white;
 }
 
 section {
